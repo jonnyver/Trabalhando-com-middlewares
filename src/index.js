@@ -10,19 +10,65 @@ app.use(cors());
 const users = [];
 
 function checksExistsUserAccount(request, response, next) {
-  // Complete aqui
+  const {username} = request.headers;
+  const user = users.find((user) => user.username === username);
+  if(!user){
+      return response.status(404).json({ error: 'Usuario nao encontrado'});
+  }
+  request.user = user;
+  return next();
 }
 
 function checksCreateTodosUserAvailability(request, response, next) {
-  // Complete aqui
+  const { user } = request;
+  const  Ntodo  = user.todos.length;
+  
+  if (user.pro === false && Ntodo < 10){
+    request.user = user
+    return next();
+  }
+  if (user.pro === false && Ntodo >= 10){
+    return response.status(403).json({ error: 'Possui 10 tarefas'});
+  }
+  if (user.pro === true){
+    request.user = user
+    return next();
+  }
+
 }
 
 function checksTodoExists(request, response, next) {
-  // Complete aqui
+  const {username} = request.headers;
+  const { id } = request.params;
+  if(!validate(id)){
+    return response.status(400).json({ error: 'id nao valido'});
+  }
+  const user = users.find((user) => user.username === username);
+  if(!user){
+      return response.status(404).json({ error: 'Usuario nao encontrado'});
+  }
+  const TodoExist = user.todos.find((todos) => todos.id === id );
+  if(!TodoExist){
+    return response.status(404).json({ error: 'tarefa nao existe'});
+  }
+  
+  request.user = user;
+  request.todo = TodoExist;
+  
+  
+  return next();
+ 
+  
 }
 
 function findUserById(request, response, next) {
-  // Complete aqui
+  const { id } = request.params;
+  const user = users.find((user) => user.id === id);
+  if(!user){
+    return response.status(404).json({ error: 'usuario nao existe'});
+  }
+  request.user = user;
+  return next();
 }
 
 app.post('/users', (request, response) => {
